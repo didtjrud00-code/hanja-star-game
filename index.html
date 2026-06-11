@@ -484,7 +484,44 @@
       { hanja: "正門", sound: "정문", meaning: "건물의 앞쪽 큰 문" },
       { hanja: "土地", sound: "토지", meaning: "사람이 이용하는 땅" },
       { hanja: "市內", sound: "시내", meaning: "도시의 안쪽" },
-      { hanja: "休日", sound: "휴일", meaning: "일하지 않고 쉬는 날" }
+      { hanja: "休日", sound: "휴일", meaning: "일하지 않고 쉬는 날" },
+      { hanja: "大人", sound: "대인", meaning: "몸과 마음이 다 자란 사람" },
+      { hanja: "小人", sound: "소인", meaning: "몸집이 작은 사람" },
+      { hanja: "大門", sound: "대문", meaning: "집의 큰 문" },
+      { hanja: "上下", sound: "상하", meaning: "위와 아래" },
+      { hanja: "天地", sound: "천지", meaning: "하늘과 땅" },
+      { hanja: "山川", sound: "산천", meaning: "산과 내" },
+      { hanja: "江水", sound: "강수", meaning: "강에 흐르는 물" },
+      { hanja: "白色", sound: "백색", meaning: "하얀 빛깔" },
+      { hanja: "靑山", sound: "청산", meaning: "푸른 산" },
+      { hanja: "男子", sound: "남자", meaning: "남성인 사람" },
+      { hanja: "女子", sound: "여자", meaning: "여성인 사람" },
+      { hanja: "主人", sound: "주인", meaning: "물건이나 집의 임자" },
+      { hanja: "住民", sound: "주민", meaning: "그곳에 사는 사람" },
+      { hanja: "人口", sound: "인구", meaning: "한곳에 사는 사람의 수" },
+      { hanja: "入口", sound: "입구", meaning: "들어가는 곳" },
+      { hanja: "工場", sound: "공장", meaning: "물건을 만드는 곳" },
+      { hanja: "農事", sound: "농사", meaning: "곡식과 채소를 기르는 일" },
+      { hanja: "用紙", sound: "용지", meaning: "어떤 일에 쓰는 종이" },
+      { hanja: "文字", sound: "문자", meaning: "말을 적는 글자" },
+      { hanja: "國語", sound: "국어", meaning: "우리나라의 말과 글" },
+      { hanja: "答紙", sound: "답지", meaning: "답을 적는 종이" },
+      { hanja: "算數", sound: "산수", meaning: "수와 셈을 배우는 공부" },
+      { hanja: "正答", sound: "정답", meaning: "바른 답" },
+      { hanja: "同時", sound: "동시", meaning: "같은 때" },
+      { hanja: "午前", sound: "오전", meaning: "밤 열두 시부터 낮 열두 시까지" },
+      { hanja: "千年", sound: "천년", meaning: "천 해 동안의 긴 시간" },
+      { hanja: "方向", sound: "방향", meaning: "향하고 있는 쪽" },
+      { hanja: "中心", sound: "중심", meaning: "한가운데" },
+      { hanja: "世上", sound: "세상", meaning: "사람들이 살아가는 곳" },
+      { hanja: "生物", sound: "생물", meaning: "살아 있는 것" },
+      { hanja: "植物", sound: "식물", meaning: "풀과 나무처럼 자라는 생물" },
+      { hanja: "育成", sound: "육성", meaning: "잘 자라도록 기름" },
+      { hanja: "有名", sound: "유명", meaning: "이름이 널리 알려짐" },
+      { hanja: "不足", sound: "부족", meaning: "모자라서 충분하지 않음" },
+      { hanja: "多少", sound: "다소", meaning: "많음과 적음" },
+      { hanja: "重力", sound: "중력", meaning: "물체를 아래로 끌어당기는 힘" },
+      { hanja: "記名", sound: "기명", meaning: "이름을 적음" }
     ];
 
     const characters = [
@@ -655,6 +692,26 @@
       }
     }
 
+    function takeRotatingQuestions(pool, mode, count) {
+      const storageKey = `hanjaQuestionQueue-${mode}`;
+      const validKeys = new Set(pool.map((item) => item.hanja));
+      let queue = JSON.parse(localStorage.getItem(storageKey) || "[]")
+        .filter((key, index, list) => validKeys.has(key) && list.indexOf(key) === index);
+      const selectedKeys = queue.splice(0, count);
+
+      if (selectedKeys.length < count) {
+        const excluded = new Set([...selectedKeys, ...queue]);
+        const refill = shuffle(pool.map((item) => item.hanja).filter((key) => !excluded.has(key)));
+        selectedKeys.push(...refill.splice(0, count - selectedKeys.length));
+        queue.push(...refill);
+      }
+
+      localStorage.setItem(storageKey, JSON.stringify(queue));
+      return selectedKeys
+        .map((key) => pool.find((item) => item.hanja === key))
+        .filter(Boolean);
+    }
+
     function startQuiz(mode) {
       state.mode = mode;
       state.round = 0;
@@ -669,7 +726,8 @@
         state.quizWords = shuffle(reviewItems).slice(0, 20);
       } else {
         const pool = mode === "word" ? words : characters;
-        state.quizWords = shuffle(pool).slice(0, 20).map((item) => ({ ...item, quizMode: mode }));
+        state.quizWords = takeRotatingQuestions(pool, mode, 20)
+          .map((item) => ({ ...item, quizMode: mode }));
       }
       updateStatus();
       showScreen("quiz");
