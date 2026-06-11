@@ -1,0 +1,789 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>한자 별빛 놀이터</title>
+  <style>
+    :root {
+      --ink: #26324a;
+      --blue: #5577ff;
+      --purple: #8d62e8;
+      --yellow: #ffd95a;
+      --mint: #80dfc0;
+      --pink: #ff8eae;
+      --paper: #fffdf7;
+      --shadow: 0 12px 30px rgba(61, 55, 110, .16);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+      background:
+        radial-gradient(circle at 10% 20%, rgba(255, 217, 90, .38) 0 4%, transparent 4.2%),
+        radial-gradient(circle at 88% 12%, rgba(128, 223, 192, .3) 0 5%, transparent 5.2%),
+        linear-gradient(145deg, #edf4ff, #f7eeff 52%, #fff7df);
+      display: grid;
+      place-items: center;
+      padding: 20px;
+    }
+
+    button { font: inherit; }
+
+    .app {
+      width: min(900px, 100%);
+      min-height: 650px;
+      background: rgba(255, 253, 247, .94);
+      border: 4px solid #fff;
+      border-radius: 32px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      position: relative;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      padding: 20px 26px;
+      background: linear-gradient(90deg, #5d79ff, #9165e8);
+      color: #fff;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(24px, 4vw, 36px);
+      letter-spacing: -2px;
+    }
+
+    .status {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .pill {
+      min-width: 92px;
+      padding: 9px 13px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .2);
+      font-weight: 800;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    main {
+      padding: clamp(22px, 5vw, 45px);
+      text-align: center;
+    }
+
+    .screen { display: none; }
+    .screen.active { display: block; animation: pop .35s ease both; }
+
+    @keyframes pop {
+      from { opacity: 0; transform: translateY(10px) scale(.98); }
+      to { opacity: 1; transform: none; }
+    }
+
+    .mascot {
+      width: 126px;
+      height: 126px;
+      margin: 0 auto 14px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #ffe983, #ffbf68);
+      box-shadow: inset 0 -8px 0 rgba(255, 133, 68, .17), 0 10px 20px rgba(115, 74, 40, .13);
+      font-family: serif;
+      font-size: 66px;
+      font-weight: 900;
+      color: #754a28;
+      transform: rotate(-4deg);
+    }
+
+    h2 {
+      margin: 10px 0;
+      font-size: clamp(28px, 5vw, 42px);
+      letter-spacing: -2px;
+    }
+
+    .intro {
+      max-width: 600px;
+      margin: 10px auto 28px;
+      line-height: 1.7;
+      font-size: 19px;
+      font-weight: 700;
+      color: #59637a;
+    }
+
+    .mode-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 24px;
+    }
+
+    .mode {
+      border: 0;
+      border-radius: 24px;
+      padding: 24px 12px;
+      color: var(--ink);
+      cursor: pointer;
+      font-weight: 900;
+      box-shadow: 0 7px 0 rgba(61, 55, 110, .14);
+      transition: .15s ease;
+    }
+
+    .mode:nth-child(1) { background: #fff1a9; }
+    .mode:nth-child(2) { background: #b9f0dd; }
+    .mode:nth-child(3) { background: #ffd1df; }
+    .mode:hover, .mode:focus-visible { transform: translateY(-4px); }
+    .mode:active { transform: translateY(3px); box-shadow: 0 3px 0 rgba(61, 55, 110, .14); }
+    .mode-title { display: block; font-size: 21px; }
+    .mode-desc { display: block; margin-top: 7px; font-size: 14px; color: #5f6678; }
+
+    .progress-track {
+      height: 14px;
+      background: #e9e8f1;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 28px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--mint), var(--blue));
+      transition: width .35s ease;
+    }
+
+    .prompt-label {
+      margin: 0 0 8px;
+      color: #747b90;
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .question {
+      min-height: 120px;
+      display: grid;
+      place-items: center;
+      margin: 0 auto 25px;
+      font-size: clamp(48px, 9vw, 78px);
+      font-family: serif;
+      font-weight: 900;
+      letter-spacing: 5px;
+      color: #33406a;
+    }
+
+    .question.word {
+      font-family: "Malgun Gothic", sans-serif;
+      font-size: clamp(38px, 7vw, 58px);
+      letter-spacing: -2px;
+    }
+
+    .choices {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    .choice {
+      min-height: 82px;
+      border: 3px solid #e0e4f3;
+      border-radius: 20px;
+      background: #fff;
+      color: var(--ink);
+      font-size: clamp(21px, 3vw, 28px);
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 5px 0 #dfe3f0;
+      transition: .12s ease;
+    }
+
+    .choice:hover, .choice:focus-visible {
+      border-color: var(--blue);
+      transform: translateY(-2px);
+    }
+
+    .choice.correct {
+      background: #bff2df;
+      border-color: #48c69a;
+      box-shadow: 0 5px 0 #48c69a;
+      animation: bounce .35s ease;
+    }
+
+    .choice.wrong {
+      background: #ffd4df;
+      border-color: #ff789b;
+      box-shadow: 0 5px 0 #ff789b;
+      animation: shake .3s ease;
+    }
+
+    @keyframes bounce { 50% { transform: scale(1.06); } }
+    @keyframes shake {
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+
+    .feedback {
+      min-height: 58px;
+      margin: 20px 0 0;
+      font-size: 22px;
+      font-weight: 900;
+    }
+
+    .feedback.good { color: #16986f; }
+    .feedback.try { color: #e7547a; }
+
+    .pair-board {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      max-width: 720px;
+      margin: 20px auto;
+    }
+
+    .card {
+      aspect-ratio: 1.15;
+      border: 0;
+      border-radius: 18px;
+      background: linear-gradient(145deg, #637fff, #8565dd);
+      color: transparent;
+      cursor: pointer;
+      box-shadow: 0 6px 0 #4f50a4;
+      font-size: clamp(20px, 4vw, 34px);
+      font-weight: 900;
+      transform-style: preserve-3d;
+      transition: .2s ease;
+    }
+
+    .card::after {
+      content: "?";
+      color: #fff;
+      font-size: 32px;
+    }
+
+    .card.open, .card.matched {
+      background: #fff;
+      color: #34405f;
+      border: 3px solid #b8c6ff;
+      box-shadow: 0 6px 0 #b8c6ff;
+      transform: rotateY(180deg);
+    }
+
+    .card.open::after, .card.matched::after { content: ""; }
+    .card.matched { background: #c6f4e3; border-color: #67d5ae; opacity: .78; }
+
+    .big-stars {
+      margin: 20px 0;
+      font-size: clamp(48px, 9vw, 76px);
+      letter-spacing: 8px;
+      color: #ffc928;
+      text-shadow: 0 4px 0 #e9a81e;
+    }
+
+    .result-score {
+      font-size: 25px;
+      font-weight: 900;
+      color: #5d66a0;
+    }
+
+    .primary {
+      border: 0;
+      border-radius: 18px;
+      background: linear-gradient(90deg, var(--blue), var(--purple));
+      color: white;
+      padding: 16px 34px;
+      font-size: 20px;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 7px 0 #4947a0;
+    }
+
+    .primary:active { transform: translateY(4px); box-shadow: 0 3px 0 #4947a0; }
+
+    .home-btn {
+      position: absolute;
+      right: 18px;
+      bottom: 16px;
+      border: 0;
+      background: #edeaf7;
+      color: #66627e;
+      border-radius: 999px;
+      padding: 10px 15px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: rgba(32, 35, 67, .62);
+    }
+
+    .modal[hidden] { display: none; }
+
+    .modal-card {
+      width: min(480px, 100%);
+      padding: 34px 25px;
+      border: 5px solid #fff;
+      border-radius: 30px;
+      background: linear-gradient(145deg, #fff9d9, #ffe4ee);
+      box-shadow: var(--shadow);
+      text-align: center;
+      animation: pop .35s ease both;
+    }
+
+    .modal-icon { font-size: 70px; }
+    .modal-card h2 { color: #624ca4; }
+    .modal-card p {
+      font-size: 20px;
+      line-height: 1.6;
+      font-weight: 800;
+      color: #59637a;
+    }
+
+    .sparkle {
+      position: fixed;
+      pointer-events: none;
+      font-size: 28px;
+      animation: fly 900ms ease-out forwards;
+      z-index: 9;
+    }
+
+    @keyframes fly {
+      to { transform: translate(var(--x), -130px) rotate(180deg) scale(.2); opacity: 0; }
+    }
+
+    @media (max-width: 650px) {
+      body { padding: 8px; }
+      .app { min-height: calc(100vh - 16px); border-radius: 22px; }
+      header { align-items: flex-start; padding: 17px; }
+      .status { gap: 5px; }
+      .pill { min-width: auto; padding: 7px 9px; font-size: 13px; }
+      main { padding: 24px 16px 75px; }
+      .mode-grid { grid-template-columns: 1fr; }
+      .mode { padding: 16px; }
+      .mode-desc { margin-left: 0; }
+      .choices { grid-template-columns: 1fr; }
+      .choice { min-height: 67px; }
+      .pair-board { grid-template-columns: repeat(3, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>한자 별빛 놀이터</h1>
+      <div class="status">
+        <div class="pill">별 <span id="starCount">0</span>개</div>
+        <div class="pill">배운 한자 <span id="learnedCount">0</span>자</div>
+      </div>
+    </header>
+
+    <main>
+      <section id="home" class="screen active">
+        <div class="mascot">學</div>
+        <h2>한자 별을 모아 보자!</h2>
+        <p class="intro">쉬운 한자 낱말을 맞히고 반짝이는 별을 모아요.<br>틀려도 괜찮아요. 다시 고르면 돼요!</p>
+        <div class="mode-grid">
+          <button class="mode" data-mode="word">
+            <span class="mode-title">한자 낱말 뜻 찾기</span>
+            <span class="mode-desc">한자 낱말의 뜻 맞히기</span>
+          </button>
+          <button class="mode" data-mode="character">
+            <span class="mode-title">한 글자 뜻 맞히기</span>
+            <span class="mode-desc">한자 한 글자의 뜻 맞히기</span>
+          </button>
+          <button class="mode" data-mode="review">
+            <span class="mode-title">틀리면 오히려 좋아</span>
+            <span class="mode-desc">틀렸던 문제만 다시 도전하기</span>
+          </button>
+        </div>
+      </section>
+
+      <section id="quiz" class="screen">
+        <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
+        <p id="promptLabel" class="prompt-label"></p>
+        <div id="question" class="question"></div>
+        <div id="choices" class="choices"></div>
+        <p id="feedback" class="feedback" aria-live="polite"></p>
+      </section>
+
+      <section id="result" class="screen">
+        <div class="mascot">星</div>
+        <h2 id="resultTitle">참 잘했어요!</h2>
+        <div id="bigStars" class="big-stars">★★★</div>
+        <p id="resultScore" class="result-score"></p>
+        <button id="againBtn" class="primary">한 번 더 놀기</button>
+      </section>
+    </main>
+
+    <button id="homeBtn" class="home-btn" hidden>처음으로</button>
+  </div>
+
+  <div id="messageModal" class="modal" hidden>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div id="modalIcon" class="modal-icon">🎁</div>
+      <h2 id="modalTitle">별 50개 달성!</h2>
+      <p id="modalText">정말 멋져요!<br>엄마에게 선물받기</p>
+      <button id="modalClose" class="primary">확인</button>
+    </div>
+  </div>
+
+  <script>
+    const words = [
+      { hanja: "學校", sound: "학교", meaning: "공부하는 곳" },
+      { hanja: "學生", sound: "학생", meaning: "학교에서 공부하는 사람" },
+      { hanja: "先生", sound: "선생", meaning: "가르쳐 주는 어른" },
+      { hanja: "父母", sound: "부모", meaning: "아버지와 어머니" },
+      { hanja: "兄弟", sound: "형제", meaning: "형과 아우" },
+      { hanja: "男女", sound: "남녀", meaning: "남자와 여자" },
+      { hanja: "國民", sound: "국민", meaning: "나라의 사람들" },
+      { hanja: "韓國", sound: "한국", meaning: "우리나라" },
+      { hanja: "敎室", sound: "교실", meaning: "공부하는 방" },
+      { hanja: "軍人", sound: "군인", meaning: "나라를 지키는 사람" },
+      { hanja: "東西", sound: "동서", meaning: "동쪽과 서쪽" },
+      { hanja: "南北", sound: "남북", meaning: "남쪽과 북쪽" },
+      { hanja: "山水", sound: "산수", meaning: "산과 물" },
+      { hanja: "日月", sound: "일월", meaning: "해와 달" },
+      { hanja: "靑年", sound: "청년", meaning: "젊은 사람" },
+      { hanja: "長男", sound: "장남", meaning: "첫째 아들" },
+      { hanja: "王子", sound: "왕자", meaning: "임금님의 아들" },
+      { hanja: "木門", sound: "목문", meaning: "나무로 만든 문" },
+      { hanja: "火山", sound: "화산", meaning: "불을 뿜는 산" },
+      { hanja: "白金", sound: "백금", meaning: "하얗게 빛나는 금속" },
+      { hanja: "空氣", sound: "공기", meaning: "우리가 숨 쉬는 것" },
+      { hanja: "車道", sound: "차도", meaning: "자동차가 다니는 길" },
+      { hanja: "道路", sound: "도로", meaning: "사람이나 차가 다니는 길" },
+      { hanja: "動物", sound: "동물", meaning: "움직이며 살아가는 생물" },
+      { hanja: "力士", sound: "역사", meaning: "힘이 아주 센 사람" },
+      { hanja: "每日", sound: "매일", meaning: "하루도 빠짐없이" },
+      { hanja: "姓名", sound: "성명", meaning: "성과 이름" },
+      { hanja: "午後", sound: "오후", meaning: "낮 열두 시가 지난 뒤" },
+      { hanja: "左右", sound: "좌우", meaning: "왼쪽과 오른쪽" },
+      { hanja: "入學", sound: "입학", meaning: "학교에 처음 들어감" },
+      { hanja: "住所", sound: "주소", meaning: "사는 곳을 나타낸 것" },
+      { hanja: "市場", sound: "시장", meaning: "물건을 사고파는 곳" },
+      { hanja: "時間", sound: "시간", meaning: "어떤 때부터 때까지의 사이" },
+      { hanja: "心中", sound: "심중", meaning: "마음속" },
+      { hanja: "正門", sound: "정문", meaning: "건물의 앞쪽 큰 문" },
+      { hanja: "土地", sound: "토지", meaning: "사람이 이용하는 땅" },
+      { hanja: "市內", sound: "시내", meaning: "도시의 안쪽" },
+      { hanja: "休日", sound: "휴일", meaning: "일하지 않고 쉬는 날" }
+    ];
+
+    const characters = [
+      { hanja: "一", sound: "일", meaning: "하나" },
+      { hanja: "二", sound: "이", meaning: "둘" },
+      { hanja: "三", sound: "삼", meaning: "셋" },
+      { hanja: "四", sound: "사", meaning: "넷" },
+      { hanja: "五", sound: "오", meaning: "다섯" },
+      { hanja: "六", sound: "육", meaning: "여섯" },
+      { hanja: "七", sound: "칠", meaning: "일곱" },
+      { hanja: "八", sound: "팔", meaning: "여덟" },
+      { hanja: "九", sound: "구", meaning: "아홉" },
+      { hanja: "十", sound: "십", meaning: "열" },
+      { hanja: "日", sound: "일", meaning: "해" },
+      { hanja: "月", sound: "월", meaning: "달" },
+      { hanja: "火", sound: "화", meaning: "불" },
+      { hanja: "水", sound: "수", meaning: "물" },
+      { hanja: "木", sound: "목", meaning: "나무" },
+      { hanja: "金", sound: "금", meaning: "쇠" },
+      { hanja: "土", sound: "토", meaning: "흙" },
+      { hanja: "山", sound: "산", meaning: "산" },
+      { hanja: "人", sound: "인", meaning: "사람" },
+      { hanja: "大", sound: "대", meaning: "크다" },
+      { hanja: "小", sound: "소", meaning: "작다" },
+      { hanja: "上", sound: "상", meaning: "위" },
+      { hanja: "下", sound: "하", meaning: "아래" },
+      { hanja: "父", sound: "부", meaning: "아버지" },
+      { hanja: "母", sound: "모", meaning: "어머니" },
+      { hanja: "男", sound: "남", meaning: "남자" },
+      { hanja: "女", sound: "녀", meaning: "여자" },
+      { hanja: "東", sound: "동", meaning: "동쪽" },
+      { hanja: "西", sound: "서", meaning: "서쪽" },
+      { hanja: "南", sound: "남", meaning: "남쪽" },
+      { hanja: "北", sound: "북", meaning: "북쪽" },
+      { hanja: "天", sound: "천", meaning: "하늘" },
+      { hanja: "白", sound: "백", meaning: "희다" },
+      { hanja: "靑", sound: "청", meaning: "푸르다" },
+      { hanja: "生", sound: "생", meaning: "나다" },
+      { hanja: "學", sound: "학", meaning: "배우다" },
+      { hanja: "江", sound: "강", meaning: "강" },
+      { hanja: "車", sound: "차", meaning: "수레" },
+      { hanja: "工", sound: "공", meaning: "장인" },
+      { hanja: "空", sound: "공", meaning: "비다" },
+      { hanja: "氣", sound: "기", meaning: "기운" },
+      { hanja: "記", sound: "기", meaning: "기록하다" },
+      { hanja: "內", sound: "내", meaning: "안" },
+      { hanja: "農", sound: "농", meaning: "농사" },
+      { hanja: "答", sound: "답", meaning: "대답" },
+      { hanja: "道", sound: "도", meaning: "길" },
+      { hanja: "動", sound: "동", meaning: "움직이다" },
+      { hanja: "同", sound: "동", meaning: "같다" },
+      { hanja: "力", sound: "력", meaning: "힘" },
+      { hanja: "立", sound: "립", meaning: "서다" },
+      { hanja: "每", sound: "매", meaning: "매양" },
+      { hanja: "名", sound: "명", meaning: "이름" },
+      { hanja: "物", sound: "물", meaning: "물건" },
+      { hanja: "方", sound: "방", meaning: "모" },
+      { hanja: "不", sound: "불", meaning: "아니다" },
+      { hanja: "事", sound: "사", meaning: "일" },
+      { hanja: "算", sound: "산", meaning: "셈하다" },
+      { hanja: "色", sound: "색", meaning: "빛깔" },
+      { hanja: "姓", sound: "성", meaning: "성씨" },
+      { hanja: "世", sound: "세", meaning: "세상" },
+      { hanja: "少", sound: "소", meaning: "적다" },
+      { hanja: "所", sound: "소", meaning: "바" },
+      { hanja: "數", sound: "수", meaning: "셈" },
+      { hanja: "市", sound: "시", meaning: "저자" },
+      { hanja: "時", sound: "시", meaning: "때" },
+      { hanja: "植", sound: "식", meaning: "심다" },
+      { hanja: "心", sound: "심", meaning: "마음" },
+      { hanja: "語", sound: "어", meaning: "말씀" },
+      { hanja: "午", sound: "오", meaning: "낮" },
+      { hanja: "右", sound: "우", meaning: "오른쪽" },
+      { hanja: "有", sound: "유", meaning: "있다" },
+      { hanja: "育", sound: "육", meaning: "기르다" },
+      { hanja: "入", sound: "입", meaning: "들다" },
+      { hanja: "字", sound: "자", meaning: "글자" },
+      { hanja: "場", sound: "장", meaning: "마당" },
+      { hanja: "正", sound: "정", meaning: "바르다" },
+      { hanja: "主", sound: "주", meaning: "주인" },
+      { hanja: "住", sound: "주", meaning: "살다" },
+      { hanja: "重", sound: "중", meaning: "무겁다" },
+      { hanja: "紙", sound: "지", meaning: "종이" },
+      { hanja: "地", sound: "지", meaning: "땅" },
+      { hanja: "千", sound: "천", meaning: "일천" },
+      { hanja: "川", sound: "천", meaning: "내" },
+      { hanja: "休", sound: "휴", meaning: "쉬다" }
+    ];
+
+    const state = {
+      stars: Number(localStorage.getItem("hanjaStars") || 0),
+      combo: 0,
+      learned: JSON.parse(localStorage.getItem("hanjaLearned") || "[]"),
+      mistakes: JSON.parse(localStorage.getItem("hanjaMistakes") || "[]"),
+      mode: "",
+      round: 0,
+      correct: 0,
+      quizWords: [],
+      locked: false
+    };
+
+    const $ = (selector) => document.querySelector(selector);
+    const screens = [...document.querySelectorAll(".screen")];
+
+    function shuffle(list) {
+      const copy = [...list];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function showScreen(id) {
+      screens.forEach((screen) => screen.classList.toggle("active", screen.id === id));
+      $("#homeBtn").hidden = id === "home";
+    }
+
+    function updateStatus() {
+      $("#starCount").textContent = state.stars;
+      $("#learnedCount").textContent = state.learned.length;
+      localStorage.setItem("hanjaStars", String(state.stars));
+      localStorage.setItem("hanjaLearned", JSON.stringify(state.learned));
+      localStorage.setItem("hanjaMistakes", JSON.stringify(state.mistakes));
+    }
+
+    function showModal(icon, title, text) {
+      $("#modalIcon").textContent = icon;
+      $("#modalTitle").textContent = title;
+      $("#modalText").innerHTML = text;
+      $("#messageModal").hidden = false;
+    }
+
+    function checkGift(previousStars) {
+      const previousGiftLevel = Math.floor(previousStars / 50);
+      const currentGiftLevel = Math.floor(state.stars / 50);
+      if (currentGiftLevel > previousGiftLevel) {
+        const milestone = currentGiftLevel * 50;
+        showModal("🎁", `별 ${milestone}개 달성!`, "정말 멋져요!<br><strong>엄마에게 선물받기</strong>");
+      }
+    }
+
+    function itemKey(item) {
+      return `${item.quizMode}|${item.hanja}`;
+    }
+
+    function findMistakeItems() {
+      return state.mistakes.map((key) => {
+        const [quizMode, hanja] = key.split("|");
+        const pool = quizMode === "word" ? words : characters;
+        const item = pool.find((entry) => entry.hanja === hanja);
+        return item ? { ...item, quizMode } : null;
+      }).filter(Boolean);
+    }
+
+    function sparkle(target) {
+      const box = target.getBoundingClientRect();
+      for (let i = 0; i < 8; i++) {
+        const dot = document.createElement("span");
+        dot.className = "sparkle";
+        dot.textContent = i % 2 ? "★" : "✦";
+        dot.style.left = `${box.left + box.width / 2}px`;
+        dot.style.top = `${box.top + box.height / 2}px`;
+        dot.style.color = ["#ffca28", "#ff769b", "#57cfa8", "#6e7eff"][i % 4];
+        dot.style.setProperty("--x", `${(Math.random() - .5) * 180}px`);
+        document.body.appendChild(dot);
+        setTimeout(() => dot.remove(), 950);
+      }
+    }
+
+    function startQuiz(mode) {
+      state.mode = mode;
+      state.round = 0;
+      state.correct = 0;
+      state.combo = 0;
+      if (mode === "review") {
+        const reviewItems = findMistakeItems();
+        if (!reviewItems.length) {
+          showModal("✨", "오답이 없어요!", "지금까지 틀린 문제가 없어요.<br>새 문제에 도전해 보세요!");
+          return;
+        }
+        state.quizWords = shuffle(reviewItems).slice(0, 10);
+      } else {
+        const pool = mode === "word" ? words : characters;
+        state.quizWords = shuffle(pool).slice(0, 10).map((item) => ({ ...item, quizMode: mode }));
+      }
+      updateStatus();
+      showScreen("quiz");
+      renderQuestion();
+    }
+
+    function renderQuestion() {
+      state.locked = false;
+      const item = state.quizWords[state.round];
+      const isWord = item.quizMode === "word";
+      const total = state.quizWords.length;
+      $("#progressBar").style.width = `${state.round / total * 100}%`;
+      $("#promptLabel").textContent = isWord
+        ? `제 ${state.round + 1} 문제 / ${total} · 이 한자 낱말은 무슨 뜻일까요?`
+        : `제 ${state.round + 1} 문제 / ${total} · 이 한 글자는 무슨 뜻일까요?`;
+      $("#question").textContent = isWord ? `${item.hanja} (${item.sound})` : item.hanja;
+      $("#question").className = "question";
+      $("#feedback").textContent = "";
+      $("#feedback").className = "feedback";
+
+      const pool = isWord ? words : characters;
+      const choiceText = (entry) => isWord ? entry.meaning : `${entry.meaning} ${entry.sound}`;
+      const answer = choiceText(item);
+      const others = shuffle(pool.filter((word) => word !== item && choiceText(word) !== answer))
+        .slice(0, 3)
+        .map(choiceText);
+      const choices = shuffle([answer, ...others]);
+      const choiceBox = $("#choices");
+      choiceBox.innerHTML = "";
+
+      choices.forEach((text) => {
+        const button = document.createElement("button");
+        button.className = "choice";
+        button.textContent = text;
+        button.addEventListener("click", () => checkAnswer(button, text === answer, answer, item));
+        choiceBox.appendChild(button);
+      });
+    }
+
+    function checkAnswer(button, isCorrect, answer, item) {
+      if (state.locked) return;
+
+      if (!isCorrect) {
+        button.classList.add("wrong");
+        button.disabled = true;
+        state.combo = 0;
+        const key = itemKey(item);
+        if (!state.mistakes.includes(key)) state.mistakes.push(key);
+        $("#feedback").textContent = "괜찮아요! 다른 답을 골라 보세요.";
+        $("#feedback").className = "feedback try";
+        updateStatus();
+        return;
+      }
+
+      state.locked = true;
+      button.classList.add("correct");
+      state.correct += 1;
+      state.combo += 1;
+      const previousStars = state.stars;
+      state.stars += state.combo >= 3 ? 2 : 1;
+      [...item.hanja].forEach((hanja) => {
+        if (!state.learned.includes(hanja)) state.learned.push(hanja);
+      });
+      if (state.mode === "review") {
+        state.mistakes = state.mistakes.filter((key) => key !== itemKey(item));
+      }
+      $("#feedback").textContent = item.quizMode === "word"
+        ? `딩동댕! ${item.hanja}는 '${item.sound}'이라고 읽어요.`
+        : `딩동댕! ${item.hanja}는 '${item.sound}', 뜻은 '${item.meaning}'이에요.`;
+      $("#feedback").className = "feedback good";
+      sparkle(button);
+      updateStatus();
+      checkGift(previousStars);
+
+      setTimeout(() => {
+        state.round += 1;
+        if (state.round >= state.quizWords.length) {
+          finishGame();
+        } else {
+          renderQuestion();
+        }
+      }, 1300);
+    }
+
+    function finishGame() {
+      const score = Math.max(1, Math.ceil(state.correct / 4));
+      $("#bigStars").textContent = "★".repeat(score) + "☆".repeat(3 - score);
+      $("#resultTitle").textContent = score === 3 ? "한자 별 박사!" : score === 2 ? "아주 잘했어요!" : "끝까지 해냈어요!";
+      $("#resultScore").textContent = `${state.quizWords.length}문제 중 ${state.correct}문제를 바로 맞혔어요.`;
+      $("#progressBar").style.width = "100%";
+      showScreen("result");
+    }
+
+    document.querySelectorAll(".mode").forEach((button) => {
+      button.addEventListener("click", () => {
+        startQuiz(button.dataset.mode);
+      });
+    });
+
+    $("#againBtn").addEventListener("click", () => {
+      startQuiz(state.mode);
+    });
+
+    $("#homeBtn").addEventListener("click", () => {
+      state.combo = 0;
+      updateStatus();
+      showScreen("home");
+    });
+
+    $("#modalClose").addEventListener("click", () => {
+      $("#messageModal").hidden = true;
+    });
+
+    updateStatus();
+  </script>
+</body>
+</html>
