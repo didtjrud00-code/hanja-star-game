@@ -439,7 +439,7 @@
   <div id="messageModal" class="modal" hidden>
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
       <div id="modalIcon" class="modal-icon">🎁</div>
-      <h2 id="modalTitle">별 50개 달성!</h2>
+      <h2 id="modalTitle">별 100개 달성!</h2>
       <p id="modalText">정말 멋져요!<br>엄마에게 선물받기</p>
       <button id="modalClose" class="primary">확인</button>
     </div>
@@ -619,10 +619,10 @@
     }
 
     function checkGift(previousStars) {
-      const previousGiftLevel = Math.floor(previousStars / 50);
-      const currentGiftLevel = Math.floor(state.stars / 50);
+      const previousGiftLevel = Math.floor(previousStars / 100);
+      const currentGiftLevel = Math.floor(state.stars / 100);
       if (currentGiftLevel > previousGiftLevel) {
-        const milestone = currentGiftLevel * 50;
+        const milestone = currentGiftLevel * 100;
         showModal("🎁", `별 ${milestone}개 달성!`, "정말 멋져요!<br><strong>엄마에게 선물받기</strong>");
       }
     }
@@ -666,10 +666,10 @@
           showModal("✨", "오답이 없어요!", "지금까지 틀린 문제가 없어요.<br>새 문제에 도전해 보세요!");
           return;
         }
-        state.quizWords = shuffle(reviewItems).slice(0, 10);
+        state.quizWords = shuffle(reviewItems).slice(0, 20);
       } else {
         const pool = mode === "word" ? words : characters;
-        state.quizWords = shuffle(pool).slice(0, 10).map((item) => ({ ...item, quizMode: mode }));
+        state.quizWords = shuffle(pool).slice(0, 20).map((item) => ({ ...item, quizMode: mode }));
       }
       updateStatus();
       showScreen("quiz");
@@ -755,7 +755,7 @@
     }
 
     function finishGame() {
-      const score = Math.max(1, Math.ceil(state.correct / 4));
+      const score = Math.max(1, Math.min(3, Math.ceil(state.correct / state.quizWords.length * 3)));
       $("#bigStars").textContent = "★".repeat(score) + "☆".repeat(3 - score);
       $("#resultTitle").textContent = score === 3 ? "한자 별 박사!" : score === 2 ? "아주 잘했어요!" : "끝까지 해냈어요!";
       $("#resultScore").textContent = `${state.quizWords.length}문제 중 ${state.correct}문제를 바로 맞혔어요.`;
